@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@nandorojo/swr-firestore": ["./src/index"]
+      "@chapterly/swr-firestore": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
