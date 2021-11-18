@@ -16,6 +16,7 @@ import {
 import { isDev } from '../helpers/is-dev'
 import { withDocumentDatesParsed } from '../helpers/doc-date-parser'
 import { Document } from '../types'
+import { FirestoreSWRError } from "../classes/FirestoreSWRError";
 
 type KeyHack = string & {} // hack to also allow strings
 
@@ -231,7 +232,7 @@ const createListenerAsync = async <Doc extends Document = Document>(
      */
     ignoreFirestoreDocumentSnapshotField?: boolean
   },
-  onError?: (error: Error) => void
+  onSnapshotError?: (error: Error) => void
 ): Promise<ListenerReturnType<Doc>> => {
   return new Promise(resolve => {
     const query: CollectionQueryType = JSON.parse(queryString) ?? {}
@@ -281,10 +282,8 @@ const createListenerAsync = async <Doc extends Document = Document>(
         mutateStatic([path, queryString], data, false)
       },
       (error) => {
-        error.message = `useCollection onSnapshot ${error.message} path ${path}`
-        console.error(error, error.message)
-        if (onError) {
-          onError(error)
+        if (onSnapshotError) {
+          onSnapshotError(error)
         }
       }
     )
@@ -440,7 +439,7 @@ export const useCollection = <
             ignoreFirestoreDocumentSnapshotField: shouldIgnoreSnapshot.current,
           },
           (error) => {
-            throw error
+            throw new FirestoreSWRError(`useCollection onSnapshotError ${error.message} path ${path}`, path, queryString)
           }
         )
         unsubscribeRef.current = unsubscribe

@@ -8,6 +8,7 @@ import { collectionCache } from '../classes/Cache'
 import { isDev } from '../helpers/is-dev'
 import { withDocumentDatesParsed } from '../helpers/doc-date-parser'
 import { deleteDocument } from './static-mutations'
+import { FirestoreSWRError } from "../classes/FirestoreSWRError";
 
 
 type Options<Doc extends Document = Document> = {
@@ -139,9 +140,10 @@ const createListenerAsync = async <Doc extends Document = Document>(
      * Default: `false`
      */
     ignoreFirestoreDocumentSnapshotField?: boolean
-  } = {}
+  } = {},
+  onSnapshotError?: (error: Error) => void
 ): Promise<ListenerReturnType<Doc>> => {
-  return await new Promise((resolve, reject) => {
+  return await new Promise(resolve => {
     const unsubscribe = fuego.db.doc(path).onSnapshot(doc => {
       const docData = doc.data() ?? empty.object
       const data = withDocumentDatesParsed<Doc>(
@@ -203,10 +205,11 @@ const createListenerAsync = async <Doc extends Document = Document>(
         unsubscribe,
       })
     },
-    (error) => {
-      console.error(error, `useDocument onSnapshot error ${error.message}, path ${path}`)
-      reject(error)
-    }
+      (error) => {
+        if (onSnapshotError) {
+          onSnapshotError(error)
+        }
+      }
     )
   })
 }
@@ -278,6 +281,9 @@ export const useDocument = <
           {
             parseDates: datesToParse.current,
             ignoreFirestoreDocumentSnapshotField: shouldIgnoreSnapshot.current,
+          },
+          (error) => {
+            throw new FirestoreSWRError(`useDocument onSnapshotError ${error.message} path ${path}`, path)
           }
         )
         unsubscribeRef.current = unsubscribe
