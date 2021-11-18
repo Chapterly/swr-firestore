@@ -1,6 +1,7 @@
 import { ConfigInterface } from 'swr';
 import { FieldPath, OrderByDirection, WhereFilterOp } from '@firebase/firestore-types';
 import { Document } from '../types';
+import { FirestoreSWRError } from "../classes/FirestoreSWRError";
 declare type KeyHack = string & {};
 declare type OrderByArray<Doc extends object = {}, Key = keyof Doc> = [
     Key | FieldPath | KeyHack,
@@ -98,7 +99,9 @@ export declare const useCollection: <Data extends object = {}, Doc extends {
      * Default: `true`
      */
     ignoreFirestoreDocumentSnapshotField?: boolean | undefined;
-}, options?: CollectionSWROptions<Doc>) => {
+}, options?: CollectionSWROptions<Doc> & {
+    onSnapshotError?: ((error: FirestoreSWRError) => void) | undefined;
+}) => {
     data: Doc[] | null | undefined;
     isValidating: boolean;
     revalidate: () => Promise<boolean>;

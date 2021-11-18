@@ -282,6 +282,7 @@ const createListenerAsync = async <Doc extends Document = Document>(
         mutateStatic([path, queryString], data, false)
       },
       (error) => {
+        mutateStatic([path, queryString], undefined, false)
         if (onSnapshotError) {
           onSnapshotError(error)
         }
@@ -327,7 +328,7 @@ export const useCollection = <
      */
     ignoreFirestoreDocumentSnapshotField?: boolean
   } = empty.object,
-  options: CollectionSWROptions<Doc> = empty.object
+  options: CollectionSWROptions<Doc> & { onSnapshotError?: (error: FirestoreSWRError) => void } = empty.object
 ) => {
   const unsubscribeRef = useRef<ListenerReturnType['unsubscribe'] | null>(null)
 
@@ -439,7 +440,11 @@ export const useCollection = <
             ignoreFirestoreDocumentSnapshotField: shouldIgnoreSnapshot.current,
           },
           (error) => {
-            throw new FirestoreSWRError(`useCollection onSnapshotError ${error.message} path ${path}`, path, queryString)
+            const err = new FirestoreSWRError(`useCollection onSnapshotError ${error.message} path ${path}`, path, queryString)
+            console.error(err, err.message)
+            if (options.onSnapshotError) {
+              options.onSnapshotError(err);
+            }
           }
         )
         unsubscribeRef.current = unsubscribe

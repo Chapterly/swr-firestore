@@ -36,7 +36,8 @@ type Options<Doc extends Document = Document> = {
    *
    * Default: `true`
    */
-  ignoreFirestoreDocumentSnapshotField?: boolean
+  ignoreFirestoreDocumentSnapshotField?: boolean,
+  onSnapshotError?: (error: FirestoreSWRError) => void;
 } & ConfigInterface<Doc | null>
 
 type ListenerReturnType<Doc extends Document = Document> = {
@@ -206,6 +207,7 @@ const createListenerAsync = async <Doc extends Document = Document>(
       })
     },
       (error) => {
+        mutate(path, undefined, false)
         if (onSnapshotError) {
           onSnapshotError(error)
         }
@@ -283,7 +285,11 @@ export const useDocument = <
             ignoreFirestoreDocumentSnapshotField: shouldIgnoreSnapshot.current,
           },
           (error) => {
-            throw new FirestoreSWRError(`useDocument onSnapshotError ${error.message} path ${path}`, path)
+            const err = new FirestoreSWRError(`useDocument onSnapshotError ${error.message} path ${path}`, path)
+            console.error(err, err.message)
+            if (options.onSnapshotError) {
+             options.onSnapshotError(err);
+            }
           }
         )
         unsubscribeRef.current = unsubscribe

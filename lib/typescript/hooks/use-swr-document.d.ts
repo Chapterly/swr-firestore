@@ -1,6 +1,7 @@
 import { ConfigInterface } from 'swr';
 import type { SetOptions, FieldValue } from '@firebase/firestore-types';
 import { AllowType, Document } from '../types/Document';
+import { FirestoreSWRError } from "../classes/FirestoreSWRError";
 declare type Options<Doc extends Document = Document> = {
     /**
      * If `true`, sets up a real-time subscription to the Firestore backend.
@@ -24,6 +25,7 @@ declare type Options<Doc extends Document = Document> = {
      * Default: `true`
      */
     ignoreFirestoreDocumentSnapshotField?: boolean;
+    onSnapshotError?: (error: FirestoreSWRError) => void;
 } & ConfigInterface<Doc | null>;
 export declare const getDocument: <Doc extends {
     id: string;
