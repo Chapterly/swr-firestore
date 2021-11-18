@@ -1,5 +1,5 @@
 {
-  "name": "@optimistiks/swr-firestore",
+  "name": "@chapterly/swr-firestore",
   "version": "0.16.2",
   "description": "SWR React hooks for Firestore, that you can actually use in production, on every screen.",
   "main": "lib/commonjs/index.js",
