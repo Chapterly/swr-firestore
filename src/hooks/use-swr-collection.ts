@@ -230,9 +230,10 @@ const createListenerAsync = async <Doc extends Document = Document>(
      * Default: `true`
      */
     ignoreFirestoreDocumentSnapshotField?: boolean
-  }
+  },
+  onError?: (error: Error) => void
 ): Promise<ListenerReturnType<Doc>> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     const query: CollectionQueryType = JSON.parse(queryString) ?? {}
     const ref = createFirestoreRef(path, query)
     const unsubscribe = ref.onSnapshot(
@@ -280,8 +281,11 @@ const createListenerAsync = async <Doc extends Document = Document>(
         mutateStatic([path, queryString], data, false)
       },
       (error) => {
-        console.error(error, `useCollection onSnapshot error ${error.message}, path ${path}`)
-        reject(error)
+        error.message = `useCollection onSnapshot ${error.message} path ${path}`
+        console.error(error, error.message)
+        if (onError) {
+          onError(error)
+        }
       }
     )
   })
@@ -434,6 +438,9 @@ export const useCollection = <
           {
             parseDates: dateParser.current,
             ignoreFirestoreDocumentSnapshotField: shouldIgnoreSnapshot.current,
+          },
+          (error) => {
+            throw error
           }
         )
         unsubscribeRef.current = unsubscribe
