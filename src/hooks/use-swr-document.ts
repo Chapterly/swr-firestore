@@ -9,7 +9,7 @@ import { isDev } from '../helpers/is-dev'
 import { withDocumentDatesParsed } from '../helpers/doc-date-parser'
 import { deleteDocument } from './static-mutations'
 
- 
+
 type Options<Doc extends Document = Document> = {
   /**
    * If `true`, sets up a real-time subscription to the Firestore backend.
@@ -141,7 +141,7 @@ const createListenerAsync = async <Doc extends Document = Document>(
     ignoreFirestoreDocumentSnapshotField?: boolean
   } = {}
 ): Promise<ListenerReturnType<Doc>> => {
-  return await new Promise(resolve => {
+  return await new Promise((resolve, reject) => {
     const unsubscribe = fuego.db.doc(path).onSnapshot(doc => {
       const docData = doc.data() ?? empty.object
       const data = withDocumentDatesParsed<Doc>(
@@ -202,7 +202,12 @@ const createListenerAsync = async <Doc extends Document = Document>(
         initialData: data,
         unsubscribe,
       })
-    })
+    },
+    (error) => {
+      console.error(error, `useDocument onSnapshot error ${error.message}, path ${path}`)
+      reject(error)
+    }
+    )
   })
 }
 

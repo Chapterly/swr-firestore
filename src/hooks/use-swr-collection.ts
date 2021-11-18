@@ -232,7 +232,7 @@ const createListenerAsync = async <Doc extends Document = Document>(
     ignoreFirestoreDocumentSnapshotField?: boolean
   }
 ): Promise<ListenerReturnType<Doc>> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const query: CollectionQueryType = JSON.parse(queryString) ?? {}
     const ref = createFirestoreRef(path, query)
     const unsubscribe = ref.onSnapshot(
@@ -278,6 +278,10 @@ const createListenerAsync = async <Doc extends Document = Document>(
         })
         // update on listener fire
         mutateStatic([path, queryString], data, false)
+      },
+      (error) => {
+        console.error(error, `useCollection onSnapshot error ${error.message}, path ${path}`)
+        reject(error)
       }
     )
   })
